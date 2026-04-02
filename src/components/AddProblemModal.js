@@ -66,40 +66,67 @@ export default function AddProblemModal({ isOpen, onClose, onSave, editProblem }
       variables: { titleSlug: slug },
     });
 
+    const leetcodeGraphqlUrl = 'https://leetcode.com/graphql';
+
+    // Helper to parse LeetCode GraphQL response
+    const applyGraphqlResult = (data) => {
+      const q = data?.data?.question;
+      if (!q) return false;
+      const tagNames = q.topicTags.map(t => t.name);
+      const matchedPatterns = PATTERNS.filter(p =>
+        tagNames.some(t => t.toLowerCase().includes(p.toLowerCase()) || p.toLowerCase().includes(t.toLowerCase()))
+      );
+      const matchedTopic = TOPICS.find(topic =>
+        tagNames.some(t => t.toLowerCase() === topic.toLowerCase())
+      );
+      setForm(f => ({
+        ...f,
+        name: q.title,
+        leetcodeNumber: q.questionId,
+        difficulty: q.difficulty,
+        topic: matchedTopic || f.topic,
+        patterns: matchedPatterns.length > 0 ? matchedPatterns : f.patterns,
+      }));
+      return true;
+    };
+
     // Try multiple approaches to fetch from LeetCode
     const fetchAttempts = [
-      // Direct fetch (works if no CORS issues)
-      () => fetch('https://leetcode.com/graphql', {
+      // Direct fetch (works on localhost / no CORS)
+      () => fetch(leetcodeGraphqlUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: graphqlQuery,
-      }),
-      // CORS proxy fallback
-      () => fetch('https://corsproxy.io/?' + encodeURIComponent('https://leetcode.com/graphql'), {
+      }).then(r => r.json()),
+      // Public LeetCode API (no CORS issues)
+      () => fetch(`https://alfa-leetcode-api.onrender.com/select?titleSlug=${slug}`)
+        .then(r => r.json())
+        .then(d => ({
+          data: { question: {
+            questionId: d.questionId,
+            title: d.questionTitle,
+            difficulty: d.difficulty,
+            topicTags: (d.topicTags || []).map(t => typeof t === 'string' ? { name: t } : t),
+          }}
+        })),
+      // CORS proxy fallbacks
+      () => fetch('https://corsproxy.io/?' + encodeURIComponent(leetcodeGraphqlUrl), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: graphqlQuery,
-      }),
+      }).then(r => r.json()),
+      () => fetch('https://api.allorigins.win/raw?url=' + encodeURIComponent(leetcodeGraphqlUrl), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: graphqlQuery,
+      }).then(r => r.json()),
     ];
 
     let fetched = false;
     for (const attempt of fetchAttempts) {
       try {
-        const response = await attempt();
-        const data = await response.json();
-        const q = data?.data?.question;
-        if (q) {
-          const tagNames = q.topicTags.map(t => t.name);
-          const matchedPatterns = PATTERNS.filter(p =>
-            tagNames.some(t => t.toLowerCase().includes(p.toLowerCase()) || p.toLowerCase().includes(t.toLowerCase()))
-          );
-          setForm(f => ({
-            ...f,
-            name: q.title,
-            leetcodeNumber: q.questionId,
-            difficulty: q.difficulty,
-            patterns: matchedPatterns.length > 0 ? matchedPatterns : f.patterns,
-          }));
+        const data = await attempt();
+        if (applyGraphqlResult(data)) {
           fetched = true;
           break;
         }
