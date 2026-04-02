@@ -2,7 +2,7 @@ import React, { useRef, useState } from 'react';
 import toast from 'react-hot-toast';
 import { format } from 'date-fns';
 import { exportAllData, importAllData, resetAllData, getMilestones, getProblems, setProblems } from '../utils/storage';
-import { MILESTONES_LIST, getPatterns, setPatterns, getCompanies, setCompanies } from '../utils/constants';
+import { MILESTONES_LIST, getPatterns, setPatterns, getCompanies, setCompanies, getTopics, setTopics } from '../utils/constants';
 import SEED_PROBLEMS from '../utils/risingbrain-seed';
 
 function TagManager({ title, description, items, onUpdate }) {
@@ -81,6 +81,7 @@ export default function Settings() {
   const earnedIds = new Set(milestones.map(m => m.id));
   const [patterns, setLocalPatterns] = useState(getPatterns());
   const [companies, setLocalCompanies] = useState(getCompanies());
+  const [topics, setLocalTopics] = useState(getTopics());
 
   const handleExport = () => {
     const data = exportAllData();
@@ -140,6 +141,7 @@ export default function Settings() {
         url: p.leetcodeNumber > 0
           ? `https://leetcode.com/problems/${p.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/-+$/, '')}/`
           : '',
+        topic: p.topic || '',
         difficulty: p.difficulty,
         patterns: p.patterns,
         companies: p.companies || [],
@@ -171,14 +173,27 @@ export default function Settings() {
     setLocalCompanies(updated);
   };
 
+  const handleUpdateTopics = (updated) => {
+    setTopics(updated);
+    setLocalTopics(updated);
+  };
+
   return (
     <div className="space-y-6 max-w-2xl">
       <h1 className="text-2xl font-bold">Settings</h1>
 
+      {/* Topic Tags */}
+      <TagManager
+        title="Topic Tags (Data Structures)"
+        description="Add or remove topic tags like Array, String, Tree, Graph, etc."
+        items={topics}
+        onUpdate={handleUpdateTopics}
+      />
+
       {/* Pattern Tags */}
       <TagManager
-        title="Pattern Tags"
-        description="Add or remove DSA pattern tags used when logging problems."
+        title="Pattern Tags (Techniques)"
+        description="Add or remove technique tags like Two Pointers, Sliding Window, BFS, etc."
         items={patterns}
         onUpdate={handleUpdatePatterns}
       />

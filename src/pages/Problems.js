@@ -4,16 +4,18 @@ import toast from 'react-hot-toast';
 import { getProblems, setProblems, getStreaks } from '../utils/storage';
 import { updateSolveStreak } from '../utils/streaks';
 import { checkAndAwardMilestones } from '../utils/milestones';
-import { getPatterns, getCompanies, DIFFICULTIES, STATUSES, CONFIDENCES } from '../utils/constants';
+import { getPatterns, getCompanies, getTopics, DIFFICULTIES, STATUSES, CONFIDENCES } from '../utils/constants';
 import AddProblemModal from '../components/AddProblemModal';
 
 export default function Problems() {
   const PATTERNS = getPatterns();
   const COMPANIES = getCompanies();
+  const TOPICS = getTopics();
   const [problems, setLocalProblems] = useState(getProblems());
   const [showModal, setShowModal] = useState(false);
   const [editProblem, setEditProblem] = useState(null);
   const [search, setSearch] = useState('');
+  const [filterTopic, setFilterTopic] = useState('');
   const [filterPattern, setFilterPattern] = useState('');
   const [filterCompany, setFilterCompany] = useState('');
   const [filterDifficulty, setFilterDifficulty] = useState('');
@@ -87,6 +89,7 @@ export default function Problems() {
         String(p.leetcodeNumber).includes(s)
       );
     }
+    if (filterTopic) result = result.filter(p => p.topic === filterTopic);
     if (filterPattern) result = result.filter(p => (p.patterns || []).includes(filterPattern));
     if (filterCompany) result = result.filter(p => (p.companies || []).includes(filterCompany));
     if (filterDifficulty) result = result.filter(p => p.difficulty === filterDifficulty);
@@ -99,12 +102,13 @@ export default function Problems() {
         const order = { Easy: 1, Medium: 2, Hard: 3 };
         return order[a.difficulty] - order[b.difficulty];
       }
+      if (sortBy === 'topic') return (a.topic || '').localeCompare(b.topic || '');
       if (sortBy === 'status') return a.status.localeCompare(b.status);
       return 0;
     });
 
     return result;
-  }, [problems, search, filterPattern, filterCompany, filterDifficulty, filterStatus, filterConfidence, sortBy]);
+  }, [problems, search, filterTopic, filterPattern, filterCompany, filterDifficulty, filterStatus, filterConfidence, sortBy]);
 
   const diffBadge = (d) => d === 'Easy' ? 'bg-green-900/50 text-green-400' : d === 'Medium' ? 'bg-amber-900/50 text-amber-400' : 'bg-red-900/50 text-red-400';
   const confBadge = (c) => c === 'Confident' ? 'bg-green-900/50 text-green-400' : c === 'Okay' ? 'bg-amber-900/50 text-amber-400' : 'bg-red-900/50 text-red-400';
@@ -121,8 +125,12 @@ export default function Problems() {
 
       {/* Search & Filters */}
       <div className="card">
-        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-7 gap-3">
+        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-3">
           <input className="input-field" placeholder="Search name or #..." value={search} onChange={e => setSearch(e.target.value)} />
+          <select className="select-field" value={filterTopic} onChange={e => setFilterTopic(e.target.value)}>
+            <option value="">All Topics</option>
+            {TOPICS.map(t => <option key={t} value={t}>{t}</option>)}
+          </select>
           <select className="select-field" value={filterPattern} onChange={e => setFilterPattern(e.target.value)}>
             <option value="">All Patterns</option>
             {PATTERNS.map(p => <option key={p} value={p}>{p}</option>)}
@@ -145,6 +153,7 @@ export default function Problems() {
           </select>
           <select className="select-field" value={sortBy} onChange={e => setSortBy(e.target.value)}>
             <option value="dateAdded">Sort: Date Added</option>
+            <option value="topic">Sort: Topic</option>
             <option value="difficulty">Sort: Difficulty</option>
             <option value="status">Sort: Status</option>
           </select>
@@ -182,6 +191,9 @@ export default function Problems() {
               </div>
 
               <div className="flex flex-wrap gap-1 mb-3">
+                {p.topic && (
+                  <span className="px-2 py-0.5 bg-cyan-900/30 text-cyan-400 rounded text-xs font-medium">{p.topic}</span>
+                )}
                 {(p.patterns || []).map(pat => (
                   <span key={pat} className="px-2 py-0.5 bg-indigo-900/30 text-indigo-400 rounded text-xs">{pat}</span>
                 ))}

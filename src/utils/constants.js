@@ -36,6 +36,22 @@ export function setCompanies(companies) {
 export const PATTERNS = DEFAULT_PATTERNS;
 export const COMPANIES = DEFAULT_COMPANIES;
 
+export const DEFAULT_TOPICS = [
+  'Array', 'String', 'Linked List', 'Stack', 'Queue', 'Tree', 'BST',
+  'Graph', 'Heap', 'Trie', 'Matrix', 'Intervals', 'Design', 'Bit Manipulation'
+];
+
+export function getTopics() {
+  try {
+    const stored = localStorage.getItem('crackit_custom_topics');
+    return stored ? JSON.parse(stored) : DEFAULT_TOPICS;
+  } catch { return DEFAULT_TOPICS; }
+}
+
+export function setTopics(topics) {
+  localStorage.setItem('crackit_custom_topics', JSON.stringify(topics));
+}
+
 export const DIFFICULTIES = ['Easy', 'Medium', 'Hard'];
 export const STATUSES = ['Unsolved', 'Attempted', 'Solved', 'Mastered'];
 export const CONFIDENCES = ['Shaky', 'Okay', 'Confident'];

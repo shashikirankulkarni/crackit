@@ -1,14 +1,16 @@
 import React, { useState } from 'react';
 import { format } from 'date-fns';
-import { getPatterns, getCompanies, DIFFICULTIES, STATUSES, CONFIDENCES, FELT_DIFFICULTIES } from '../utils/constants';
+import { getPatterns, getCompanies, getTopics, DIFFICULTIES, STATUSES, CONFIDENCES, FELT_DIFFICULTIES } from '../utils/constants';
 
 export default function AddProblemModal({ isOpen, onClose, onSave, editProblem }) {
   const PATTERNS = getPatterns();
   const COMPANIES = getCompanies();
+  const TOPICS = getTopics();
   const [form, setForm] = useState(editProblem || {
     leetcodeUrl: '',
     leetcodeNumber: '',
     name: '',
+    topic: '',
     difficulty: 'Medium',
     patterns: [],
     companies: [],
@@ -173,6 +175,14 @@ export default function AddProblemModal({ isOpen, onClose, onSave, editProblem }
               <label className="block text-sm text-gray-400 mb-1">LeetCode #</label>
               <input className="input-field" type="number" value={form.leetcodeNumber} onChange={e => setForm(f => ({ ...f, leetcodeNumber: e.target.value }))} />
             </div>
+          </div>
+
+          <div>
+            <label className="block text-sm text-gray-400 mb-1">Topic (Data Structure)</label>
+            <select className="select-field" value={form.topic || ''} onChange={e => setForm(f => ({ ...f, topic: e.target.value }))}>
+              <option value="">Select topic...</option>
+              {TOPICS.map(t => <option key={t} value={t}>{t}</option>)}
+            </select>
           </div>
 
           <div className="grid grid-cols-3 gap-4">
