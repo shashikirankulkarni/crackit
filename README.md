@@ -1,70 +1,71 @@
-# Getting Started with Create React App
+# CrackIt
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+A DSA interview-prep tracker that answers one question a spreadsheet can't:
+**am I actually ready?**
 
-## Available Scripts
+Most prep trackers count solved problems. Counting rewards grinding easy
+problems in patterns you already know. CrackIt instead computes a 0–100
+**readiness score** from four weighted signals, so the number only moves when
+your actual interview readiness does.
 
-In the project directory, you can run:
+## The readiness model
 
-### `npm start`
+| Component            | Weight | What it measures                                        |
+|----------------------|--------|---------------------------------------------------------|
+| DSA depth            | 30     | Solved volume, scaled against a 100-problem target       |
+| Revision consistency | 25     | Share of scheduled revisions completed on time          |
+| Pattern coverage     | 25     | How many of the 18 patterns have 5+ solved problems     |
+| Solve speed          | 20     | Time-to-solve trend relative to target                  |
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+Pattern coverage is the part that makes it honest: 200 problems concentrated in
+four patterns scores worse than 90 spread across eighteen, which reflects how
+interviews actually sample.
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+Problems are tagged on two independent axes — **topic** (Arrays, Graphs, DP…)
+and **pattern** (Sliding Window, Two Pointers, Monotonic Stack…) — because the
+pattern is what transfers between problems and the topic is only where it
+happened to appear.
 
-### `npm test`
+## Spaced repetition
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+Each solved problem gets a three-stage revision schedule. The Revisions page
+surfaces what's due today; completed-on-time revisions feed back into the
+consistency score, so skipping reviews visibly costs you readiness rather than
+silently decaying.
 
-### `npm run build`
+## Features
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+- **Dashboard** — readiness score, streaks, and what's due now
+- **Problems** — log solves with topic, pattern, difficulty, and time taken
+- **Revisions** — spaced-repetition queue
+- **Analytics** — Recharts breakdowns of pattern coverage and score history
+- **Study Plan** — structured progression
+- **Company Sets** — problem sets grouped by target company
+- **Mock Interview** — timed practice mode
+- **Notes** — free-form notes per problem
+- **Settings** — targets, import/export
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+## Stack
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+React 19 · React Router 7 · Recharts · Tailwind CSS · date-fns ·
+react-hot-toast · Create React App
 
-### `npm run eject`
+State persists to `localStorage` — no backend, no account, no data leaves the
+browser. LeetCode URLs are parsed to auto-fill problem metadata on entry.
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+## Run locally
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+```bash
+npm install
+npm start        # http://localhost:3000
+npm run build    # production build to ./build
+```
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+Deploys as a static site; `render.yaml` configures the SPA rewrite for Render.
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+## Limitations
 
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+- Single-device by design — `localStorage` means no sync across machines. Use
+  the export in Settings to move data.
+- Test coverage is limited to the CRA smoke test. `src/utils/scoring.js` is pure
+  and is the obvious first thing to cover.
